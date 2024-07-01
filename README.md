@@ -55,7 +55,7 @@ Send USDC token to USDC native bridge to migrate cUSDC
 
 | Key                | Type    | Description                                                                                             |
 | ------------------ | ------- | ------------------------------------------------------------------------------------------------------- |
-| amount             | uint256 | Bridging token amount. If this is 0, the contract tried to bridge entire amount the message sender has. |
+| amount             | uint256 | Bridging token amount. If this is 0, the contract tries to bridge entire amount the message sender has. |
 | destination_domain | uint32  | Destination chain domain number in USDC native bridge                                                   |
 | mint_recipient     | bytes32 | Recipient address. This should be the Migration bot contract on opposite chain                          |
 | burn_token         | address | Burn token address parameter for USDC native bridge                                                     |
@@ -77,7 +77,7 @@ Send USDC token to USDC native bridge to migrate cTokens
 | Key                | Type    | Description                                                                                             |
 | ------------------ | ------- | ------------------------------------------------------------------------------------------------------- |
 | ctoken             | address | cToken address to migrate                                                                               |
-| amount             | uint256 | Bridging token amount. If this is 0, the contract tried to bridge entire amount the message sender has. |
+| amount             | uint256 | Bridging token amount. If this is 0, the contract tries to bridge entire amount the message sender has. |
 | dex                | address | dex address to exchange asset into USDC                                                                 |
 | payload            | bytes   | payload data to exchange asset into USDC                                                                |
 | destination_domain | uint32  | Destination chain domain number in USDC native bridge                                                   |
