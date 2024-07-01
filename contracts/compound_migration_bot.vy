@@ -216,7 +216,7 @@ def send_to_bridge_other(ctoken: address, amount: uint256, dex: address, payload
 
 @external
 @nonreentrant('lock')
-def receive_from_bridge_other(message: Bytes[1024], signature: Bytes[1024], receiver: address, ctoken: address, amount: uint256, dex: address, payload: Bytes[1024]):
+def receive_from_bridge_other(message: Bytes[1024], signature: Bytes[1024], receiver: address, ctoken: address, dex: address, payload: Bytes[1024]):
     self._paloma_check()
     _usdc_amount: uint256 = ERC20(USDC).balanceOf(self)
     MessageTransmitter(MESSAGE_TRANSMITTER).receiveMessage(message, signature)
