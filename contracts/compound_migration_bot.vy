@@ -162,6 +162,7 @@ def receive_from_bridge_usdc(message: Bytes[1024], signature: Bytes[1024], recei
 
 @external
 def redeemable_amount(ctoken: address, sender: address, amount: uint256) -> uint256:
+    # This function is to get redeemable amount of the cToken. Expected to run as view function only.
     assert msg.sender == empty(address)
     _c_amount: uint256 = amount
     if _c_amount > 0:
