@@ -161,6 +161,28 @@ def receive_from_bridge_usdc(message: Bytes[1024], signature: Bytes[1024], recei
     log ReceiveFromBridge(nonce, msg.sender, CUSDC, _c_amount)
 
 @external
+def redeemable_amount(ctoken: address, sender: address, amount: uint256) -> uint256:
+    # This function is to get redeemable amount of the cToken. Expected to run as view function only.
+    assert msg.sender == empty(address)
+    _c_amount: uint256 = amount
+    if _c_amount > 0:
+        self._safe_transfer_from(ctoken, sender, self, _c_amount)
+    else:
+        _c_amount = ERC20(ctoken).balanceOf(sender)
+        self._safe_transfer_from(ctoken, sender, self, _c_amount)
+    _amount: uint256 = 0
+    if ctoken == CETH:
+        _amount = self.balance
+        CToken(ctoken).redeem(_c_amount)
+        _amount = self.balance - _amount
+    else:
+        underlying_token: address = CToken(ctoken).underlying()
+        _amount = ERC20(underlying_token).balanceOf(self)
+        CToken(ctoken).redeem(_c_amount)
+        _amount = ERC20(underlying_token).balanceOf(self) - _amount
+    return _amount
+
+@external
 @payable
 @nonreentrant('lock')
 def send_to_bridge_other(ctoken: address, amount: uint256, dex: address, payload: Bytes[1024], destination_domain: uint32, mint_recipient: bytes32, burn_token: address):
@@ -183,23 +205,13 @@ def send_to_bridge_other(ctoken: address, amount: uint256, dex: address, payload
         _amount = self.balance
         CToken(ctoken).redeem(_c_amount)
         _amount = self.balance - _amount
+        underlying_token = VETH
     else:
         underlying_token = CToken(ctoken).underlying()
         _amount = ERC20(underlying_token).balanceOf(self)
         CToken(ctoken).redeem(_c_amount)
         _amount = ERC20(underlying_token).balanceOf(self) - _amount
     assert _amount > 0, "redeem failed"
-    _service_fee: uint256 = self.service_fee
-    _service_fee_amount: uint256 = 0
-    if _service_fee > 0:
-        _service_fee_amount = unsafe_div(_amount * _service_fee, DENOMINATOR)
-        _amount = unsafe_sub(_amount, _service_fee_amount)
-    assert _amount > 0, "Insuf deposit"
-    if _service_fee_amount > 0:
-        if underlying_token == VETH:
-            send(self.service_fee_collector, _service_fee_amount)
-        else:
-            self._safe_transfer(underlying_token, self.service_fee_collector, _service_fee_amount)
     _usdc_amount: uint256 = ERC20(USDC).balanceOf(self)
     if underlying_token == VETH:
         raw_call(dex, payload, value=_amount)
@@ -207,7 +219,14 @@ def send_to_bridge_other(ctoken: address, amount: uint256, dex: address, payload
         self._safe_approve(underlying_token, dex, _amount)
         raw_call(dex, payload)
     _usdc_amount = ERC20(USDC).balanceOf(self) - _usdc_amount
-    assert _usdc_amount > 0, "Insufficient"
+    _service_fee: uint256 = self.service_fee
+    _service_fee_amount: uint256 = 0
+    if _service_fee > 0:
+        _service_fee_amount = unsafe_div(_usdc_amount * _service_fee, DENOMINATOR)
+        _usdc_amount = unsafe_sub(_usdc_amount, _service_fee_amount)
+    assert _usdc_amount > 0, "Insuf deposit"
+    if _service_fee_amount > 0:
+        self._safe_transfer(USDC, self.service_fee_collector, _service_fee_amount)
     self._safe_approve(USDC, USDC_TOKEN_MESSENGER, _usdc_amount)
     TokenMessenger(USDC_TOKEN_MESSENGER).depositForBurn(_usdc_amount, destination_domain, mint_recipient, burn_token)
     nonce: uint256 = self.last_nonce

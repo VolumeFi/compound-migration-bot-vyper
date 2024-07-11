@@ -1,1 +1,7 @@
 name: compound-migration-bot-vyper
+
+foundry:
+  fork:
+    ethereum:
+      mainnet:
+        upstream_provider: infura
