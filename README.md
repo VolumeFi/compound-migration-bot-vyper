@@ -3,6 +3,16 @@
 This smart contract system is to let users move Compound asset tokens just like cUSDC and cETH between Ethereum and Base/Arbitrum chain. This uses Native USDC bridge to move assets.
 
 
+## Test and dependencies
+
+Install Foundry, Apeworx.
+
+```ape plugins install foundry infura vyper```
+
+```ape test --network ethereum:mainnet:foundry```
+
+
+
 ## Read-Only functions
 
 ### compass
